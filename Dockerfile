@@ -1,13 +1,11 @@
-FROM debian:bookworm-slim
-RUN apt-get update && apt install -y curl gnupg
-RUN echo "deb http://downloads.linux.hpe.com/SDR/repo/mcp bookworm/current non-free" > /etc/apt/sources.list.d/mcp.list
-RUN curl http://downloads.linux.hpe.com/SDR/hpPublicKey2048.pub | apt-key add -
-RUN curl http://downloads.linux.hpe.com/SDR/hpPublicKey2048_key1.pub | apt-key add -
-RUN curl http://downloads.linux.hpe.com/SDR/hpePublicKey2048_key1.pub | apt-key add -
-RUN apt-get clean && \
-    apt-get update && \
-    apt install -y amsd storcli ssa ssacli ssaducli && \
-    rm -rf /var/lib/apt/lists/*
-ADD start.sh /
-RUN chmod +x /start.sh
-CMD ["/start.sh"]
+FROM registry.suse.com/suse/sles12sp3:latest
+
+COPY hp-ams-2.10.5-888.1.sles12.x86_64.rpm /hp-ams-2.10.5-888.1.sles12.x86_64.rpm
+
+RUN zypper --non-interactive --no-gpg-checks addrepo -f http://download.opensuse.org/distribution/12.3/repo/oss/ oss && \
+    zypper --non-interactive --no-gpg-checks install /hp-ams-2.10.5-888.1.sles12.x86_64.rpm && \
+    rm /hp-ams-2.10.5-888.1.sles12.x86_64.rpm && \
+    zypper clean -a
+
+ENTRYPOINT ["/sbin/amsHelper"]
+CMD ["-f"]
